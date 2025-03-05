@@ -1,47 +1,56 @@
-const pokemonList = document.getElementById('pokemonList')
 const loadMoreButton = document.getElementById('loadMoreButton')
+const homeButton = document.getElementById('homeButton')
+const likeButton = document.getElementById('likeButton')
+const pokemonList = document.getElementById('pokemonList')
+const limit = 5
+let offset = 0
+const maxRecords = 15
 
-const maxRecords = 151
-const limit = 10
-let offset = 0;
-
-function convertPokemonToLi(pokemon) {
-    return `
-        <li class="pokemon ${pokemon.type}">
-            <span class="number">#${pokemon.number}</span>
-            <span class="name">${pokemon.name}</span>
-
-            <div class="detail">
-                <ol class="types">
-                    ${pokemon.types.map((type) => `<li class="type ${type}">${type}</li>`).join('')}
-                </ol>
-
-                <img src="${pokemon.photo}"
-                     alt="${pokemon.name}">
-            </div>
-        </li>
-    `
-}
-
-function loadPokemonItens(offset, limit) {
-    pokeApi.getPokemons(offset, limit).then((pokemons = []) => {
-        const newHtml = pokemons.map(convertPokemonToLi).join('')
-        pokemonList.innerHTML += newHtml
+function loadPokemons(offset, limit){
+    pokeApi.getPokemons(offset, limit)
+    .then((pokemons = []) => {
+        const newHtml = pokemons.map((pokemon) =>`
+            <li id="pokemonItem${pokemon.number}" class="pokemon ${pokemon.type} pokemonClick" name="${pokemon.name}" onclick=capturaPokemonItem(this)>
+                    <span class="number">#${pokemon.number}</span>
+                    <span class="name">${pokemon.name}</span>         
+                    <div class="detail">
+                        <ol class="types">
+                            ${pokemon.types.map((type) => `<li class="type ${type}">${type}</li>`).join('')}
+                        </ol>
+                        <img src="${pokemon.photo}" alt="${pokemon.name}">
+                    </div>
+            </li>`
+        ).join('')//escrita otimizada com arrow function
+        if(pokemonList != null){
+            pokemonList.innerHTML += newHtml
+        }
     })
 }
 
-loadPokemonItens(offset, limit)
-
-loadMoreButton.addEventListener('click', () => {
-    offset += limit
-    const qtdRecordsWithNexPage = offset + limit
-
-    if (qtdRecordsWithNexPage >= maxRecords) {
-        const newLimit = maxRecords - offset
-        loadPokemonItens(offset, newLimit)
-
-        loadMoreButton.parentElement.removeChild(loadMoreButton)
-    } else {
-        loadPokemonItens(offset, limit)
+function capturaPokemonItem(pokemon) {
+    if(pokemon != null) {//clicou em algum pokemon
+        pokemonSelected = pokemon.querySelector('.number').textContent.replace('#', '')
+        document.location.href = `/pokeDetail.html?id=${pokemonSelected}`
     }
-})
+}
+
+if(document.getElementById("loadMoreButton") != null){
+    loadMoreButton.addEventListener('click', () => {
+        offset += limit
+        const qtdRecordsNextPage = offset + limit
+    
+        if (qtdRecordsNextPage >= maxRecords) {
+            const newLimit = maxRecords - offset
+            loadPokemons(offset, newLimit)
+    
+            loadMoreButton.parentElement.removeChild(loadMoreButton)
+        } else {
+            loadPokemons(offset, limit)
+        }
+    })
+}
+
+function main(){
+    loadPokemons(offset, limit)
+}
+main()
